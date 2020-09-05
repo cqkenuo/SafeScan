@@ -1,4 +1,4 @@
-# 关于POC-Yaml模板函数（有两种写法）
+# 关于POC-Yaml模板函数（有两种写法，可混写）
 
 #### [第一种可参考Xray](https://docs.xray.cool/#/guide/poc)
 
@@ -33,15 +33,46 @@ search: (?P<username>(账[户号]|管理员账[户号]|username|password|密码)
 ### 下面是我对测试服务器的扫描
  ![](./img/001.png)
 
+# 常规扫描（未优化和测试，可能存在漏报和未扫出）
+
 ## 框架扫描
 
-- [x] fastjson检测
+- [x] fastjson 
 - [ ] thinkphp
 - [x] struts2
 
-# 通用扫描
+## 通用扫描
 
-- [ ] sql注入检测
+- [x] sql注入检测（联合注入和宽字节注入暂未写完）
 - [ ] 命令/代码注入检测
-- [ ] 反射性xss检测
-- [ ] 目录枚举检测
+- [ ] 反射xss检测
+
+# 关于Fuzzing
+
+## module demo
+
+```yaml
+name: fuzz-params
+rule: /{{param}}=$value$/ ** 匹配规则 **
+fuzzlist: **可选参数 fuzz字典，若为空，则为默认fuzz规则**
+search: (?P<param>[\w-]+)=(?P<value>[\w%]*)
+```
+
+```
+http://127.0.0.1:8080/?sid=1&id=2 => sid=1 id=2 => sid=$$ id=$$
+```
+
+![002](./img/002.png)
+
+# 关于bypass
+
+## 本工具自带了3个sql注入bypass脚本，~~可自行定义~~, 暂时仅调用空格转换,待优化
+
+```python
+(1) and -> anandd -> def andDouble()
+(2) 空格 -> {"%09", "%0A", "%0C", "%0D", "%0B"} -> def spaceToMySqlBlank()
+(3) # -> and [SYMBOL]rand[SYMBOL]=[SYMBOL]rand -> def noteToInference()
+使用
+e.g.
+bypass: spaceToMySqlBlank
+```
